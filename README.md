@@ -20,24 +20,30 @@ npm test           # test de bout en bout : 2 joueurs simulés (salon, chat, les
 
 ## Fonctionnalités
 
-- **Salon privé** avec code de partage à 4 chiffres (copier en un clic), hôte désigné 👑, liste des joueurs avec statut de connexion et scores ⭐.
+- **Salon privé** avec code de partage à 4 chiffres (copier en un clic), hôte désigné 👑, liste des joueurs avec statut de connexion, scores ⭐ et **🏆 records du salon** par jeu.
 - **Chat intégré** avec barre d'émojis rapides (les messages 100 % émoji flottent à l'écran 🎉).
-- **3 mini-jeux** :
-  - 🎨 **Dessin & Devinettes** — un joueur dessine sur un canvas partagé en direct, les autres proposent des mots ; points selon la rapidité.
-  - 🔴 **Puissance 4** — duel 1v1, détection de victoire, revanche en un clic.
-  - ⚡ **Quiz éclair** — 5 questions, tout le monde répond en même temps, bonus de vitesse.
-- **Design** : mode sombre néon, animations fluides, responsive mobile (chat en panneau coulissant) / desktop.
+- **118 mini-jeux** dans un catalogue filtrable/recherchable, chacun avec sa **couverte SVG générée** (`/api/cover/<id>`) :
+  - 🧠 **Quiz & devinettes** — 8 catégories de QCM (80 questions) + 5 packs d'énigmes en texte libre, en 5/10 questions.
+  - 🔤 **Pendu** — 12 packs thématiques (120 mots), vies communes.
+  - 🎨 **Dessin & Devinettes** — 12 packs de mots à dessiner, canvas partagé en direct.
+  - 🔴 **Puissance 4** — 30 plateaux (4–9 × 4–8), duel 1v1 + spectateurs.
+  - ⭕ **Morpion** — 3×3 à 6×6 — et ✕ **Morpion XXL** (ultimate).
+  - 🎯 **Réflexe** (clic le plus rapide), 🔢 **Chaud/Froid** (1 à 10 → 10 000), ✊ **Pierre-Feuille-Ciseaux** (best of 3 à 11, tout le monde joue).
+  - 🕹️ **Rétro / NES, 100 % tactiles (Android)** — chacun a sa propre partie en parallèle avec **classement en direct** : 🐍 Snake (swipe + croix directionnelle), 🐹 Tape-la-taupe, 🃏 Memory, 🧱 Casse-briques (glisser le doigt), 🎨 Simon, 🐤 Flappy, 👾 Space Invaders, 🦆 Duck Hunt, 🏓 Pong vs IA.
+- **Design** : mode sombre néon, animations fluides, cadre « scanlines » phosphore vert pour les jeux rétro, responsive mobile (chat en panneau coulissant, contrôles tactiles) / desktop.
 - Reconnexion automatique (session en `localStorage`), salons nettoyés après 2 h d'inactivité.
 
 ## Architecture
 
 ```
-server.js          Serveur HTTP : fichiers statiques + /api/action (POST) + /api/stream (SSE)
-games.js           Machines à états des 3 jeux (quiz, Puissance 4, dessin) + sérialisation publique
+server.js          Serveur HTTP : statiques + /api/action (POST) + /api/stream (SSE) + /api/catalog + /api/cover/:id
+content.js         Banque de contenu (80 questions, 30 énigmes, 120 mots) + génération du catalogue (118 jeux)
+covers.js          Générateur de couvertures SVG par jeu
+games.js           18 moteurs de jeu (quiz, pendu, dessin, plateaux, réflexe, PFC, rétro NES…) + sérialisation publique par joueur
 public/index.html  Structure des écrans (accueil, salon, partie, chat)
-public/style.css   Thème sombre néon, responsive
-public/app.js      Client : SSE, rendu des états, canvas de dessin, chat
-test/smoke.js      Test d'intégration bout en bout (2 clients simulés)
+public/style.css   Thème sombre néon + UI rétro, responsive mobile/desktop
+public/app.js      Client : SSE, catalogue avec couvertures, toutes les vues de jeu, chat
+test/smoke.js      Test d'intégration bout en bout (2 clients simulés, 76 assertions)
 ```
 
 ## Protocole (résumé)
@@ -54,6 +60,6 @@ Côté client, l'état complet du salon arrive en événement SSE `state` ; `cha
 
 ## Variables d'environnement
 
-`PORT` (3000), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `QUIZ_COUNT`.
+`PORT` (3000), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `RPS_CHOOSE_MS`. Les variantes de jeux se règlent via le `cfg` de chaque entrée du catalogue (taille de plateau, vies, durée, vitesse…).
 
 > ⚠️ Par défaut le serveur écoute sur `127.0.0.1` (loopback). Pour jouer à plusieurs depuis des machines différentes, héberge-le sur ton propre serveur privé (VPN, LAN, VPS perso) — ne l'expose pas publiquement sans ajouter une authentification.
