@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Salon Arcade — Mini-jeux entre amis</title>
+  <meta name="description" content="Salon privé de mini-jeux multijoueur en temps réel : dessin & devinettes, Puissance 4, quiz éclair." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕹️</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="topbar">
+      <div class="brand"><span class="logo">🕹️</span><span class="brand-name">Salon&nbsp;Arcade</span></div>
+      <div class="topbar-right">
+        <button id="room-chip" class="chip hidden" title="Copier le code du salon">
+          <span class="chip-label">Salon</span><span id="room-code" class="chip-code">----</span>
+          <span class="chip-copy">📋</span>
+        </button>
+        <span id="players-count" class="chip hidden">👥 <b id="players-count-n">0</b></span>
+        <button id="chat-toggle" class="icon-btn" title="Chat">💬<span id="chat-unread" class="badge hidden">0</span></button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="screen-home" class="screen">
+        <div class="hero">
+          <div class="hero-emoji">🕹️🎨🔴⚡</div>
+          <h1>Salon Arcade</h1>
+          <p class="tagline">Des mini-jeux chill entre amis, en temps réel.<br/>Crée un salon privé, partage le code à 4 chiffres, c’est parti.</p>
+
+          <div class="card home-card">
+            <label for="name-input">Ton pseudo</label>
+            <input id="name-input" maxlength="16" placeholder="Ex. Nova" autocomplete="off" />
+            <button id="btn-create" class="btn btn-primary btn-big">✨ Créer un salon</button>
+            <div class="divider"><span>ou</span></div>
+            <div class="join-row">
+              <input id="code-input" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off" />
+              <button id="btn-join" class="btn btn-ghost">Rejoindre</button>
+            </div>
+            <p id="home-error" class="error"></p>
+          </div>
+
+          <div class="games-preview">
+            <div class="gp-card"><span>🎨</span>Dessin &amp; devinettes</div>
+            <div class="gp-card"><span>🔴</span>Puissance 4</div>
+            <div class="gp-card"><span>⚡</span>Quiz éclair</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-lobby" class="screen" hidden>
+        <div class="lobby">
+          <div class="lobby-head card">
+            <div>
+              <h2>Salon <span id="lobby-code" class="code-text">----</span>
+                <button id="btn-copy" class="mini-btn" title="Copier le code">📋 copier</button>
+              </h2>
+              <p class="muted">Partage ce code à 4 chiffres à tes amis pour les inviter.</p>
+            </div>
+            <button id="btn-leave" class="btn btn-ghost btn-sm">Quitter</button>
+          </div>
+
+          <div class="lobby-grid">
+            <div class="card">
+              <h3>Joueurs <span id="lobby-n" class="muted"></span></h3>
+              <ul id="players-list" class="players-list"></ul>
+            </div>
+
+            <div class="card">
+              <h3>Choisis un jeu</h3>
+              <div id="game-cards" class="game-cards"></div>
+              <div id="game-running" class="hidden">
+                <p>🎮 Une partie est en cours…</p>
+                <button id="btn-watch" class="btn btn-primary">Voir la partie</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-game" class="screen" hidden>
+        <div class="game-head card">
+          <button id="btn-back" class="btn btn-ghost btn-sm">← Salon</button>
+          <div class="game-title-wrap">
+            <h2 id="game-title">Partie</h2>
+            <div id="timer-bar" class="timer-bar hidden"><div id="timer-fill"></div></div>
+            <span id="timer-text" class="muted"></span>
+          </div>
+          <button id="btn-endgame" class="btn btn-danger btn-sm hidden">Terminer</button>
+        </div>
+        <div id="game-area" class="game-area"></div>
+      </section>
+    </main>
+
+    <aside id="chat-panel">
+      <div class="chat-head">
+        <span>💬 Chat du salon</span>
+        <button id="chat-close" class="icon-btn">✕</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="emoji-bar" class="emoji-bar"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" maxlength="200" placeholder="Écris un message…" autocomplete="off" />
+        <button class="btn btn-primary btn-sm" type="submit">➤</button>
+      </form>
+    </aside>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="floaters"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
