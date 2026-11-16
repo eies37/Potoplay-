@@ -33,6 +33,13 @@ npm test           # test de bout en bout : 2 joueurs simulés (salon, chat, les
 - **Design** : mode sombre néon, animations fluides, cadre « scanlines » phosphore vert pour les jeux rétro, responsive mobile (chat en panneau coulissant, contrôles tactiles) / desktop.
 - Reconnexion automatique (session en `localStorage`), salons nettoyés après 2 h d'inactivité.
 
+## 📱 PWA & APK (Android)
+
+L'app est une **PWA installable** : manifest + service worker + icônes PNG générées (`tools/make-icons.js`).
+
+- **Sur Android (Chrome)** : ouvre l'URL du serveur → menu ⋮ → **« Ajouter à l'écran d'accueil »** → l'app s'installe avec son icône, en plein écran, et le shell fonctionne hors-ligne (les parties temps réel passent toujours par `/api/`, non mises en cache).
+- **Vrai fichier .apk** : non produit ici (pas de SDK Android dans le bac à sable, et un APK exige une clé de signature). Sur ta machine : Android Studio → *New Project → « Trusted Web Activity »* → URL de ton serveur privé → build signé → `.apk` installable. Alternative : Capacitor (`npx cap add android`) si tu préfères un wrapper natif.
+
 ## Architecture
 
 ```

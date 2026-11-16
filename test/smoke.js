@@ -425,6 +425,15 @@ async function main() {
     assert(true, 'NES pong : raquette au doigt + balle + IA animées côté serveur');
     await end();
 
+    // --- PWA (installable Android) ---
+    const man = await getRaw('/manifest.webmanifest');
+    const manJson = JSON.parse(man.body);
+    assert(man.code === 200 && manJson.display === 'standalone' && manJson.icons.length >= 2, 'manifest PWA servi (standalone, icônes)');
+    const icon = await getRaw('/icon-512.png');
+    assert(icon.code === 200 && icon.body.slice(1, 4) === 'PNG', 'icône PNG 512 servie (signature PNG valide)');
+    const sw = await getRaw('/sw.js');
+    assert(sw.code === 200 && sw.body.includes('serviceWorker') === false && sw.body.includes('/api/'), 'service worker servi (API non cachée)');
+
     console.log(`\n🎉 Tous les tests passent (${passed} assertions).`);
   } finally {
     server.kill();

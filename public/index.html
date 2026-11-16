@@ -6,6 +6,13 @@
   <title>Salon Arcade — Mini-jeux entre amis</title>
   <meta name="description" content="Salon privé de mini-jeux multijoueur en temps réel : dessin & devinettes, Puissance 4, quiz éclair." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕹️</text></svg>" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Potoplay" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -117,5 +124,10 @@
   <div id="floaters"></div>
 
   <script src="/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
 </body>
 </html>
