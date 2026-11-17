@@ -10,13 +10,13 @@ Salon privé de **mini-jeux multijoueur en temps réel**, style « salon de jeux
 Le plus simple, sur **ton Wi-Fi** (aucune exposition publique nécessaire) :
 
 ```bash
-HOST=0.0.0.0 PORT=3000 npm start
+HOST=0.0.0.0 PORT=8080 npm start
 ```
 
-Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:3000`.
+Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:8080`.
 
 1. **Sur ton ordi** : ouvre cette URL, crée un salon → le code à 4 chiffres s'affiche.
-2. **Bouton « 🔗 lien d'invitation »** dans le salon : copie `http://192.168.1.23:3000/?room=1234` → envoie ce lien à tes amis (même Wi-Fi).
+2. **Bouton « 🔗 lien d'invitation »** dans le salon : copie `http://192.168.1.23:8080/?room=1234` → envoie ce lien à tes amis (même Wi-Fi).
 3. **Sur chaque téléphone** : ouvre le lien → le code est pré-rempli → pseudo → « Rejoindre ». Puis menu Chrome ⋮ → « Ajouter à l'écran d'accueil » pour une icône plein écran (PWA).
 4. L'hôte 👑 lance n'importe lequel des 118 jeux ; tout le monde joue en même temps (party games, rétro avec classement en direct) ou en duel 1v1 + spectateurs.
 
@@ -25,7 +25,7 @@ Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:3000`.
 ## Lancer
 
 ```bash
-npm start          # puis ouvrir http://127.0.0.1:3000
+npm start          # puis ouvrir http://127.0.0.1:8080
 # ou : PORT=8080 HOST=0.0.0.0 node server.js   (HOST=0.0.0.0 uniquement sur ton propre réseau privé)
 ```
 
@@ -84,6 +84,6 @@ Côté client, l'état complet du salon arrive en événement SSE `state` ; `cha
 
 ## Variables d'environnement
 
-`PORT` (3000), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `RPS_CHOOSE_MS`. Les variantes de jeux se règlent via le `cfg` de chaque entrée du catalogue (taille de plateau, vies, durée, vitesse…).
+`PORT` (8080, modifiable), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `RPS_CHOOSE_MS`. Les variantes de jeux se règlent via le `cfg` de chaque entrée du catalogue (taille de plateau, vies, durée, vitesse…).
 
 > ⚠️ Par défaut le serveur écoute sur `127.0.0.1` (loopback). Pour jouer à plusieurs depuis des machines différentes, héberge-le sur ton propre serveur privé (VPN, LAN, VPS perso) — ne l'expose pas publiquement sans ajouter une authentification.

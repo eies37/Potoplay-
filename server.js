@@ -9,7 +9,7 @@ const games = require('./games');
 const { CATALOG } = require('./content');
 const { coverSVG } = require('./covers');
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const TICK_MS = Number(process.env.TICK_MS || 1000);
