@@ -5,6 +5,23 @@ Salon privé de **mini-jeux multijoueur en temps réel**, style « salon de jeux
 - **Zéro dépendance** : Node.js pur (>= 18) pour le serveur, HTML/CSS/JS vanilla pour le front.
 - **Temps réel** via Server-Sent Events (SSE) + requêtes POST — pas de WebSocket à configurer.
 
+## 🎮 Jouer à plusieurs (téléphone + amis)
+
+Le plus simple, sur **ton Wi-Fi** (aucune exposition publique nécessaire) :
+
+```bash
+HOST=0.0.0.0 PORT=3000 npm start
+```
+
+Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:3000`.
+
+1. **Sur ton ordi** : ouvre cette URL, crée un salon → le code à 4 chiffres s'affiche.
+2. **Bouton « 🔗 lien d'invitation »** dans le salon : copie `http://192.168.1.23:3000/?room=1234` → envoie ce lien à tes amis (même Wi-Fi).
+3. **Sur chaque téléphone** : ouvre le lien → le code est pré-rempli → pseudo → « Rejoindre ». Puis menu Chrome ⋮ → « Ajouter à l'écran d'accueil » pour une icône plein écran (PWA).
+4. L'hôte 👑 lance n'importe lequel des 118 jeux ; tout le monde joue en même temps (party games, rétro avec classement en direct) ou en duel 1v1 + spectateurs.
+
+> Pour jouer par **Internet** (amis hors Wi-Fi) : héberge sur ton propre serveur/VPS avec HTTPS (reverse proxy) — ne rends jamais le serveur public sans ajouter une authentification (le code à 4 chiffres seul est un secret faible).
+
 ## Lancer
 
 ```bash

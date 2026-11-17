@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 const games = require('./games');
 const { CATALOG } = require('./content');
 const { coverSVG } = require('./covers');
@@ -262,6 +263,10 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/api/stream') return handleStream(req, res, url);
 
+  if (req.method === 'GET' && url.pathname === '/api/info') {
+    return json(res, { ok: true, port: PORT, urls: lanUrls() });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/catalog') {
     return json(res, { ok: true, count: CATALOG.length, games: CATALOG });
   }
@@ -358,6 +363,20 @@ setInterval(() => {
   }
 }, 25000);
 
+function lanUrls() {
+  const urls = [`http://${HOST}:${PORT}`];
+  try {
+    for (const nets of Object.values(os.networkInterfaces())) {
+      for (const n of nets || []) {
+        if (n && n.family === 'IPv4' && !n.internal) urls.push(`http://${n.address}:${PORT}`);
+      }
+    }
+  } catch (e) { /* ignore */ }
+  return [...new Set(urls)];
+}
+
 server.listen(PORT, HOST, () => {
-  console.log(`🕹️  Salon Arcade démarré → http://${HOST}:${PORT}  (${CATALOG.length} mini-jeux dans le catalogue)`);
+  console.log(`🕹️  Salon Arcade démarré  (${CATALOG.length} mini-jeux dans le catalogue)`);
+  for (const u of lanUrls()) console.log(`   → ${u}`);
+  console.log('   Partage une URL + le code à 4 chiffres du salon pour inviter tes amis.');
 });

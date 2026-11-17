@@ -1174,6 +1174,11 @@ function openStream() {
 async function boot() {
   const nameInput = $('#name-input');
   nameInput.value = localStorage.getItem('sa_name') || '';
+  const roomParam = new URLSearchParams(location.search).get('room');
+  if (roomParam && /^\d{4}$/.test(roomParam)) {
+    $('#code-input').value = roomParam;
+    $('#btn-join').classList.add('btn-primary');
+  }
 
   $('#btn-create').addEventListener('click', async () => {
     const name = nameInput.value.trim() || 'Joueur';
@@ -1195,6 +1200,7 @@ async function boot() {
   nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#btn-create').click(); });
 
   $('#btn-copy').addEventListener('click', copyCode);
+  $('#btn-invite').addEventListener('click', copyInvite);
   $('#room-chip').addEventListener('click', copyCode);
   $('#btn-leave').addEventListener('click', async () => {
     await api('leave');
@@ -1260,6 +1266,24 @@ function enterRoom(r, name) {
   openStream();
   ensureCatalog().then(() => { renderChips(); });
   showScreen('lobby');
+}
+
+async function copyInvite() {
+  if (!S.room) return;
+  let base = location.origin;
+  if (/^https?:\/\/(127\.0\.0\.1|localhost)/.test(base)) {
+    try {
+      const j = await (await fetch('/api/info')).json();
+      if (j.ok && j.urls && j.urls.length > 1) base = j.urls[j.urls.length - 1];
+    } catch (e) { /* garde location.origin */ }
+  }
+  const link = `${base}/?room=${S.room}`;
+  try {
+    await navigator.clipboard.writeText(link);
+    toast(`Lien d'invitation copié 🔗 : ${link}`);
+  } catch (e) {
+    toast(`Lien à partager : ${link}`);
+  }
 }
 
 async function copyCode() {

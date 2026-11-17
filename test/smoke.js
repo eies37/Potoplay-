@@ -425,6 +425,12 @@ async function main() {
     assert(true, 'NES pong : raquette au doigt + balle + IA animées côté serveur');
     await end();
 
+    // --- Partage multi-appareils (LAN) ---
+    const info = JSON.parse((await getRaw('/api/info')).body);
+    assert(info.ok && Array.isArray(info.urls) && info.urls[0].includes('http'), 'GET /api/info renvoie les URL du serveur (LAN)');
+    const withRoom = await getRaw('/?room=1234');
+    assert(withRoom.code === 200 && withRoom.body.includes('screen-home'), 'les liens ?room=XXXX servent l\u2019app (pré-remplissage du code côté client)');
+
     // --- PWA (installable Android) ---
     const man = await getRaw('/manifest.webmanifest');
     const manJson = JSON.parse(man.body);
