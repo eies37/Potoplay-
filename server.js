@@ -166,15 +166,17 @@ function handleAction(req, res, body) {
 
   if (data.action === 'create') {
     const { room, player } = createRoom(data.name);
+    console.log(`[salon ${room.code}] créé par ${player.name} (${rooms.size} actif(s))`);
     sysChat(room, `${player.name} a créé le salon 🎉`);
     return json(res, { ok: true, room: room.code, token: player.token, playerId: player.id });
   }
 
   if (data.action === 'join') {
     const room = rooms.get(String(data.room || '').trim());
-    if (!room) return json(res, { ok: false, error: 'Salon introuvable — vérifie le code à 4 chiffres.' });
+    if (!room) return json(res, { ok: false, error: `Salon introuvable (code « ${String(data.room || '').trim()} », ${rooms.size} salon(s) actif(s)) — recrée le salon ou recopie le code actuel.` });
     const player = addPlayer(room, data.name);
     room.lastActivity = Date.now();
+    console.log(`[salon ${room.code}] ${player.name} a rejoint (${room.players.size} joueur(s))`);
     sysChat(room, `${player.name} a rejoint le salon 👋`);
     broadcastState(room);
     return json(res, { ok: true, room: room.code, token: player.token, playerId: player.id });
