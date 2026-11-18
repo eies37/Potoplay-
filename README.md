@@ -50,6 +50,18 @@ npm test           # test de bout en bout : 2 joueurs simulés (salon, chat, les
 - **Design** : mode sombre néon, animations fluides, cadre « scanlines » phosphore vert pour les jeux rétro, responsive mobile (chat en panneau coulissant, contrôles tactiles) / desktop.
 - Reconnexion automatique (session en `localStorage`), salons nettoyés après 2 h d'inactivité.
 
+## 🎮 APK via Godot (projet prêt à exporter)
+
+Le dossier **`godot/`** contient un projet Godot 4 minimal (lanceur « Potoplay ») : un écran pour saisir l'URL du serveur (même Wi-Fi/hotspot) puis l'ouvrir. **Je ne peux pas compiler l'APK dans le bac à sable** (pas de Godot/SDK Android/réseau), donc l'export se fait sur **ton PC** en ~10 min :
+
+1. Installe **Godot 4.x** (Standard, version Android) + **Android SDK** (cmdline-tools via Android Studio) + JDK 17.
+2. Dans Godot : *Project → Export → Add → Android*. Laisse Godot générer un **debug keystore** (ou mets le tien pour le Play Store).
+3. Ouvre le dossier `godot/` du dépôt cloné, vérifie la scène `main.tscn`, puis **Export Project → APK**.
+4. Installe l'APK sur le téléphone (`adb install` ou transfert du fichier), lance-le, entre l'URL du serveur (`http://<IP>:8080`) → « ▶ JOUER ».
+5. Pour une WebView **intégrée** (sans ouvrir Chrome) : ajoute un plugin WebView depuis l'AssetLib (ex. « WebView » pour Android) et remplace `OS.shell_open(url)` dans `godot/main.gd` par `webview.load_url(url)`.
+
+> Le serveur doit tourner sur un appareil du même réseau (voir section « Jouer à plusieurs »). L'APK ouvre l'app web par son URL — aucune donnée n'est embarquée.
+
 ## 📱 PWA & APK (Android)
 
 L'app est une **PWA installable** : manifest + service worker + icônes PNG générées (`tools/make-icons.js`).

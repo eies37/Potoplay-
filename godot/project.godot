@@ -1,0 +1,18 @@
+; Projet Godot 4 — lanceur "Potoplay" (ouvre le serveur web du salon).
+; À ouvrir dans l'éditeur Godot 4.x sur TON PC, puis exporter en APK Android.
+
+config_version=5
+
+[application]
+
+config/name="Potoplay"
+config/description="Lance le Salon Arcade (Potoplay) hébergé sur le même réseau Wi-Fi/hotspot."
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.3", "Mobile")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/handheld/orientation=1
