@@ -2,7 +2,7 @@
 
 /* Service worker PWA : cache les assets statiques, laisse passer /api/ en direct (SSE + actions). */
 
-const CACHE = 'potoplay-v1';
+const CACHE = 'potoplay-v2';
 const ASSETS = [
   '/',
   '/index.html',

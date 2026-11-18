@@ -49,7 +49,7 @@ async function api(action, data = {}) {
     const r = await fetch('/api/action', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...data, room: S.room, token: S.token }),
+      body: JSON.stringify({ action, room: S.room, token: S.token, ...data }),
     });
     return await r.json();
   } catch (e) {

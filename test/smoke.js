@@ -431,6 +431,10 @@ async function main() {
     const withRoom = await getRaw('/?room=1234');
     assert(withRoom.code === 200 && withRoom.body.includes('screen-home'), 'les liens ?room=XXXX servent l\u2019app (pré-remplissage du code côté client)');
 
+    // --- Régression : api() ne doit pas écraser room/token passés dans data ---
+    const appSrc = require('fs').readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+    assert(appSrc.includes('{ action, room: S.room, token: S.token, ...data }'), 'régression api(): le code saisi (data.room) prime sur S.room');
+
     // --- PWA (installable Android) ---
     const man = await getRaw('/manifest.webmanifest');
     const manJson = JSON.parse(man.body);
