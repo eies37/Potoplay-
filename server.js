@@ -10,7 +10,7 @@ const { CATALOG } = require('./content');
 const { coverSVG } = require('./covers');
 
 const PORT = Number(process.env.PORT || 8080);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const TICK_MS = Number(process.env.TICK_MS || 1000);
 const ROOM_TTL_MS = 2 * 60 * 60 * 1000;
@@ -378,5 +378,9 @@ function lanUrls() {
 server.listen(PORT, HOST, () => {
   console.log(`🕹️  Salon Arcade démarré  (${CATALOG.length} mini-jeux dans le catalogue)`);
   for (const u of lanUrls()) console.log(`   → ${u}`);
+  if (HOST === '0.0.0.0') {
+    console.log('   ⚠️  écoute sur 0.0.0.0 : réservé à un réseau PRIVÉ (Wi-Fi/hotspot perso).');
+    console.log('       Ne jamais exposer publiquement sans ajouter une authentification (HOST=127.0.0.1 pour du local seul).');
+  }
   console.log('   Partage une URL + le code à 4 chiffres du salon pour inviter tes amis.');
 });

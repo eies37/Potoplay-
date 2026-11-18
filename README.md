@@ -10,7 +10,7 @@ Salon privé de **mini-jeux multijoueur en temps réel**, style « salon de jeux
 Le plus simple, sur **ton Wi-Fi** (aucune exposition publique nécessaire) :
 
 ```bash
-HOST=0.0.0.0 PORT=8080 npm start
+npm start   # (déjà sur 0.0.0.0:8080)
 ```
 
 Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:8080`.
@@ -25,8 +25,8 @@ Le démarrage affiche les URL disponibles, ex. `http://192.168.1.23:8080`.
 ## Lancer
 
 ```bash
-npm start          # puis ouvrir http://127.0.0.1:8080
-# ou : PORT=8080 HOST=0.0.0.0 node server.js   (HOST=0.0.0.0 uniquement sur ton propre réseau privé)
+npm start          # écoute sur 0.0.0.0:8080 → http://<IP-de-la-machine>:8080
+HOST=127.0.0.1 npm start   # mode local seul : http://127.0.0.1:8080 uniquement
 ```
 
 ## Tester
@@ -84,6 +84,6 @@ Côté client, l'état complet du salon arrive en événement SSE `state` ; `cha
 
 ## Variables d'environnement
 
-`PORT` (8080, modifiable), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `RPS_CHOOSE_MS`. Les variantes de jeux se règlent via le `cfg` de chaque entrée du catalogue (taille de plateau, vies, durée, vitesse…).
+`HOST` (0.0.0.0 par défaut ; `127.0.0.1` pour local seul), `PORT` (8080), `HOST` (127.0.0.1), `TICK_MS`, `QUIZ_SECONDS`, `REVEAL_MS`, `DRAW_SECONDS`, `ROUND_REVEAL_MS`, `RPS_CHOOSE_MS`. Les variantes de jeux se règlent via le `cfg` de chaque entrée du catalogue (taille de plateau, vies, durée, vitesse…).
 
-> ⚠️ Par défaut le serveur écoute sur `127.0.0.1` (loopback). Pour jouer à plusieurs depuis des machines différentes, héberge-le sur ton propre serveur privé (VPN, LAN, VPS perso) — ne l'expose pas publiquement sans ajouter une authentification.
+> ⚠️ Par défaut le serveur écoute sur `0.0.0.0` (toutes les interfaces) pour faciliter le jeu en LAN/hotspot : **réservé à un réseau privé** (Wi-Fi perso, hotspot perso). Pour du local seul : `HOST=127.0.0.1`. Ne jamais exposer publiquement sans ajouter une authentification.
