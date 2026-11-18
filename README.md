@@ -50,6 +50,16 @@ npm test           # test de bout en bout : 2 joueurs simulés (salon, chat, les
 - **Design** : mode sombre néon, animations fluides, cadre « scanlines » phosphore vert pour les jeux rétro, responsive mobile (chat en panneau coulissant, contrôles tactiles) / desktop.
 - Reconnexion automatique (session en `localStorage`), salons nettoyés après 2 h d'inactivité.
 
+## 📦 APK précompilé (prêt à installer)
+
+Un APK debug-signé est déjà construit et livré dans le dépôt : **[build/Potoplay.apk](build/Potoplay.apk)**
+(téléchargement direct : `https://raw.githubusercontent.com/eies37/Potoplay-/vibe/salon-arcade-2e129d/build/Potoplay.apk`)
+
+- Package `fr.potoplay.app` v1.0 — icône « Potoplay » — portrait — ARM (arm64-v8a + armeabi-v7a), minSdk 21 / targetSdk 34
+- Construit avec Godot 4.3 (template `android_release.apk` officiel + `assets/game.pck` du lanceur `godot/`), signé debug (CN=Android Debug)
+- **Installation** : autorise « sources inconnues » sur Android → ouvre le fichier APK → Installer → lance « Potoplay » → entre l'URL du serveur (`http://<IP>:8080`) → ▶ JOUER
+- Pour le Play Store : re-signe avec ta clé release (voir section Godot ci-dessous)
+
 ## 🎮 APK via Godot (projet prêt à exporter)
 
 Le dossier **`godot/`** contient un projet Godot 4 minimal (lanceur « Potoplay ») : un écran pour saisir l'URL du serveur (même Wi-Fi/hotspot) puis l'ouvrir. **Je ne peux pas compiler l'APK dans le bac à sable** (pas de Godot/SDK Android/réseau), donc l'export se fait sur **ton PC** en ~10 min :
