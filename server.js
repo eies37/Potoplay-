@@ -4,10 +4,13 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 const games = require('./games');
+const { CATALOG } = require('./content');
+const { coverSVG } = require('./covers');
 
-const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || '127.0.0.1';
+const PORT = Number(process.env.PORT || 8080);
+const HOST = process.env.HOST || '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const TICK_MS = Number(process.env.TICK_MS || 1000);
 const ROOM_TTL_MS = 2 * 60 * 60 * 1000;
@@ -47,6 +50,7 @@ function createRoom(name) {
     game: null,
     hostId: null,
     scores: {},
+    records: {},
     lastActivity: Date.now(),
   };
   const player = addPlayer(room, name);
@@ -71,13 +75,14 @@ function serializePlayer(room, p) {
   };
 }
 
-function serializeRoom(room) {
+function serializeRoom(room, forPlayerId) {
   return {
     code: room.code,
     hostId: room.hostId,
     players: [...room.players.values()].map((p) => serializePlayer(room, p)),
     chat: room.chat.slice(-80),
-    game: room.game ? games.publicGame(room.game) : null,
+    game: room.game ? { ...games.publicGame(room.game, forPlayerId), meta: room.game.meta || null } : null,
+    records: room.records || {},
   };
 }
 
@@ -95,7 +100,9 @@ function broadcast(room, type, data) {
 }
 
 function broadcastState(room) {
-  broadcast(room, 'state', serializeRoom(room));
+  for (const p of room.players.values()) {
+    for (const res of p.sse) send(res, 'state', serializeRoom(room, p.id));
+  }
   const g = room.game;
   if (g && g.type === 'draw' && g.phase === 'drawing') {
     sendTo(room, g.drawerId, 'secret', { word: g.word, round: g.round });
@@ -142,7 +149,7 @@ function handleStream(req, res, url) {
     player.sse.delete(res);
     if (room && player.sse.size === 0) broadcastState(room);
   });
-  send(res, 'state', serializeRoom(room));
+  send(res, 'state', serializeRoom(room, player.id));
   if (room.game && room.game.type === 'draw' && room.game.drawerId === player.id && room.game.phase === 'drawing') {
     send(res, 'secret', { word: room.game.word, round: room.game.round });
   }
@@ -159,15 +166,17 @@ function handleAction(req, res, body) {
 
   if (data.action === 'create') {
     const { room, player } = createRoom(data.name);
+    console.log(`[salon ${room.code}] créé par ${player.name} (${rooms.size} actif(s))`);
     sysChat(room, `${player.name} a créé le salon 🎉`);
     return json(res, { ok: true, room: room.code, token: player.token, playerId: player.id });
   }
 
   if (data.action === 'join') {
     const room = rooms.get(String(data.room || '').trim());
-    if (!room) return json(res, { ok: false, error: 'Salon introuvable — vérifie le code à 4 chiffres.' });
+    if (!room) return json(res, { ok: false, error: `Salon introuvable (code « ${String(data.room || '').trim()} », ${rooms.size} salon(s) actif(s)) — recrée le salon ou recopie le code actuel.` });
     const player = addPlayer(room, data.name);
     room.lastActivity = Date.now();
+    console.log(`[salon ${room.code}] ${player.name} a rejoint (${room.players.size} joueur(s))`);
     sysChat(room, `${player.name} a rejoint le salon 👋`);
     broadcastState(room);
     return json(res, { ok: true, room: room.code, token: player.token, playerId: player.id });
@@ -195,8 +204,12 @@ function handleAction(req, res, body) {
     case 'startGame': {
       if (player.id !== room.hostId) return json(res, { ok: false, error: 'Seul l’hôte peut lancer une partie.' });
       if (room.game) return json(res, { ok: false, error: 'Une partie est déjà en cours.' });
-      const g = games.create(String(data.game || ''), room);
-      if (!g) return json(res, { ok: false, error: 'Jeu inconnu ou pas assez de joueurs (2 requis pour Puissance 4).' });
+      const entry = CATALOG.find((e) => e.id === String(data.game || ''));
+      const type = entry ? entry.type : String(data.game || '');
+      const cfg = entry ? entry.cfg : (data.config && typeof data.config === 'object' ? data.config : {});
+      const g = games.create(type, room, cfg);
+      if (!g) return json(res, { ok: false, error: 'Jeu inconnu ou pas assez de joueurs (2 requis pour les duels).' });
+      g.meta = entry ? { title: entry.title, emoji: entry.emoji, coverId: entry.id } : { title: games.label(type), emoji: '🎮', coverId: null };
       room.game = g;
       sysChat(room, `🎮 Partie lancée : ${games.label(g.type)}`);
       broadcastState(room);
@@ -205,9 +218,17 @@ function handleAction(req, res, body) {
     }
     case 'game': {
       const r = games.handle(room, player, data.data || {});
+      for (const ev of games.drainEvents()) {
+        if (ev.room !== room) continue;
+        if (ev.type === '__state__') sendTo(ev.room, ev.to, 'state', serializeRoom(ev.room, ev.to));
+        else sendTo(ev.room, ev.to, ev.type, ev.data);
+      }
       if (!r) return json(res, { ok: true });
       if (r.error) sendTo(room, player.id, 'toast', { text: r.error });
-      for (const ev of r.events || []) broadcast(room, ev.type, ev.data);
+      for (const ev of r.events || []) {
+        if (ev.to) sendTo(room, ev.to, ev.type, ev.data);
+        else broadcast(room, ev.type, ev.data);
+      }
       if (r.state) broadcastState(room);
       if (r.secret) sendTo(room, r.secret.to, 'secret', { word: r.secret.word, round: room.game ? room.game.round : 0 });
       return json(res, { ok: true });
@@ -243,6 +264,25 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
   if (req.method === 'GET' && url.pathname === '/api/stream') return handleStream(req, res, url);
+
+  if (req.method === 'GET' && url.pathname === '/api/info') {
+    return json(res, { ok: true, port: PORT, urls: lanUrls() });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/catalog') {
+    return json(res, { ok: true, count: CATALOG.length, games: CATALOG });
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/cover/')) {
+    const id = decodeURIComponent(url.pathname.slice('/api/cover/'.length));
+    const entry = CATALOG.find((e) => e.id === id);
+    if (!entry) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Introuvable');
+    }
+    res.writeHead(200, { 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
+    return res.end(coverSVG(entry));
+  }
 
   if (req.method === 'POST' && url.pathname === '/api/action') {
     let body = '';
@@ -282,7 +322,10 @@ setInterval(() => {
     if (room.game) {
       const r = games.tick(room);
       if (r) {
-        for (const ev of r.events || []) broadcast(room, ev.type, ev.data);
+        for (const ev of r.events || []) {
+          if (ev.to) sendTo(room, ev.to, ev.type, ev.data);
+          else broadcast(room, ev.type, ev.data);
+        }
         if (r.light && room.game) {
           broadcast(room, 'tick', { gameId: room.game.id, phase: room.game.phase, timeLeft: room.game.timeLeft });
         } else {
@@ -297,10 +340,49 @@ setInterval(() => {
 
 setInterval(() => {
   for (const room of rooms.values()) {
+    const g = room.game;
+    if (g && games.isRetro(g.type)) {
+      const r = games.tickRetro(room, 100);
+      for (const ev of games.drainEvents()) {
+        if (ev.room !== room) continue;
+        if (ev.type === '__state__') sendTo(ev.room, ev.to, 'state', serializeRoom(ev.room, ev.to));
+        else sendTo(ev.room, ev.to, ev.type, ev.data);
+      }
+      if (r) {
+        for (const ev of r.events || []) {
+          if (ev.to) sendTo(room, ev.to, ev.type, ev.data);
+          else broadcast(room, ev.type, ev.data);
+        }
+        if (r.state) broadcastState(room);
+      }
+    }
+  }
+}, 100);
+
+setInterval(() => {
+  for (const room of rooms.values()) {
     for (const p of room.players.values()) for (const res of p.sse) send(res, 'hb', { t: Date.now() });
   }
 }, 25000);
 
+function lanUrls() {
+  const urls = [`http://${HOST}:${PORT}`];
+  try {
+    for (const nets of Object.values(os.networkInterfaces())) {
+      for (const n of nets || []) {
+        if (n && n.family === 'IPv4' && !n.internal) urls.push(`http://${n.address}:${PORT}`);
+      }
+    }
+  } catch (e) { /* ignore */ }
+  return [...new Set(urls)];
+}
+
 server.listen(PORT, HOST, () => {
-  console.log(`🕹️  Salon Arcade démarré → http://${HOST}:${PORT}`);
+  console.log(`🕹️  Salon Arcade démarré  (${CATALOG.length} mini-jeux dans le catalogue)`);
+  for (const u of lanUrls()) console.log(`   → ${u}`);
+  if (HOST === '0.0.0.0') {
+    console.log('   ⚠️  écoute sur 0.0.0.0 : réservé à un réseau PRIVÉ (Wi-Fi/hotspot perso).');
+    console.log('       Ne jamais exposer publiquement sans ajouter une authentification (HOST=127.0.0.1 pour du local seul).');
+  }
+  console.log('   Partage une URL + le code à 4 chiffres du salon pour inviter tes amis.');
 });
